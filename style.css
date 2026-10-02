@@ -73,11 +73,37 @@ h2 {
 h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
 
 /* Intro */
+.intro-head {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 2.25rem;
+  align-items: start;
+}
+.intro-head p:last-child { margin-bottom: 0; }
+.portrait {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
 .role { margin: 0; color: var(--muted); font-size: 1.1rem; }
 .contact { margin: 0.4rem 0 1.75rem; }
 .contact span { color: var(--muted); margin: 0 0.4rem; }
 .interests { margin: 0; padding-left: 1.2rem; }
 .methods { margin: 0; color: var(--muted); }
+
+/* Research highlights */
+.highlight { margin-bottom: 1.9rem; }
+.highlight h3 { margin: 0 0 0.35rem; }
+.highlight p { margin: 0; }
+.highlight .links { margin-top: 0.35rem; font-size: 0.95rem; color: var(--muted); }
+.links span { margin: 0 0.35rem; }
+
+/* Media coverage */
+.media-intro { margin: 0 0 1rem; color: var(--muted); }
+.media { list-style: none; margin: 0; padding: 0; }
+.media li { margin-bottom: 0.85rem; }
+.media-meta { display: block; color: var(--muted); font-size: 0.9rem; }
 
 /* Publications and talks */
 .items { margin: 0; padding-left: 1.8rem; }
@@ -117,6 +143,7 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
 .awards { list-style: none; margin: 0; padding: 0; }
 .awards li { margin-bottom: 0.6rem; color: var(--muted); }
 .award-name { color: var(--text); font-weight: 600; }
+a.award-name { color: var(--accent); }
 .award-year { white-space: nowrap; margin-left: 0.25rem; }
 .award-year::before { content: "· "; }
 
@@ -140,4 +167,11 @@ footer p { margin: 0; }
   .site-nav ul { gap: 0.9rem; overflow-x: auto; white-space: nowrap; }
   h1 { font-size: 1.9rem; }
   .items { padding-left: 1.5rem; }
+  .intro-head { grid-template-columns: 1fr; gap: 1.25rem; }
+  .portrait { order: -1; width: 150px; }
+}
+
+/* Mid widths: the nav has too many links to keep the name beside it */
+@media (max-width: 900px) {
+  .site-nav .brand { display: none; }
 }
