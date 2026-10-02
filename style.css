@@ -98,6 +98,15 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
 .highlight p { margin: 0; }
 .highlight .links { margin-top: 0.35rem; font-size: 0.95rem; color: var(--muted); }
 .links span { margin: 0 0.35rem; }
+.highlight .figure {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 0.9rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+.highlight .figure-narrow { max-width: 480px; }
 
 /* Media coverage */
 .media-intro { margin: 0 0 1rem; color: var(--muted); }
