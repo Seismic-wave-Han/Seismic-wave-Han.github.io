@@ -100,7 +100,9 @@
   /* 2. Pinned scroll stages                                             */
   /*    .stage > .stage-pin (sticky) + .stage-spacer. While the pin is   */
   /*    stuck below the nav, the spacer's height of scroll is mapped to  */
-  /*    a progress value p in [0, 1] and handed to the effect.           */
+  /*    a progress value p in [0, 1] and handed to the effect. A short   */
+  /*    hold (.stage::after) keeps the finished scene pinned at p = 1    */
+  /*    before it scrolls away.                                          */
   /* ------------------------------------------------------------------ */
   var stages = [];
 
@@ -279,7 +281,9 @@
   /*      46-52 %     pause                                               */
   /*      52-88 %     subevent 2: faster, from the western end of S1,     */
   /*                  spreading into everything S1 did not break         */
-  /*      88-100 %    healing: the residual smear fades out               */
+  /*      88 %        healing starts and runs on a fixed clock (~3 s),    */
+  /*                  first-broken letters first, so it plays out even    */
+  /*                  if the reader keeps scrolling                      */
   /* ------------------------------------------------------------------ */
   registerStage('rupture', function (stage) {
     var box = stage.el.querySelector('.rupture');
@@ -306,9 +310,13 @@
     var NUC = [[0.04, 22], [0.11, 32]];                 /* [progress, radius in px] of the nucleation flickers */
     var S1 = { cx: 0.70, cy: 0.50, R: 0.33, start: 0.16, end: 0.46 };
     var S2 = { cx: 0.37, cy: 0.55, R: 1, start: 0.52, end: 0.88 };   /* R is set to reach the farthest corner */
-    var HEAL = [0.88, 1.0];
+    var HEAL_AT = 0.88;        /* progress at which healing starts (end of subevent 2) */
+    var HEAL_SPREAD = 1.5;     /* s between the first- and the last-broken letter starting to heal */
+    var HEAL_FADE = 1.8;       /* s for one letter's smear to fade out */
     var g = { W: 1, H: 1 };
     var nucFired = NUC.map(function () { return false; });
+    var healing = false;
+    box.style.setProperty('--hdur', HEAL_FADE + 's');
 
     function measure() {
       var r = content.getBoundingClientRect();
@@ -325,6 +333,14 @@
         L.y = b.top - r.top + b.height / 2;
         L.d1 = Math.sqrt((L.x - c1x) * (L.x - c1x) + (L.y - c1y) * (L.y - c1y));
         L.d2 = Math.sqrt((L.x - c2x) * (L.x - c2x) + (L.y - c2y) * (L.y - c2y));
+      });
+      /* healing order follows the rupture: a letter starts to heal in proportion to when it broke */
+      var r1max = S1.R * g.W;
+      letters.forEach(function (L, i) {
+        var t1 = L.d1 <= r1max ? S1.start + (S1.end - S1.start) * L.d1 / r1max : Infinity;
+        var t2 = S2.start + (S2.end - S2.start) * Math.min(1, L.d2 / S2.R);
+        var order = (Math.min(t1, t2) - S1.start) / (S2.end - S1.start);
+        L.el.style.setProperty('--hdelay', (HEAL_SPREAD * order + 0.25 * rnd(i, 8)).toFixed(2) + 's');
       });
     }
 
@@ -360,8 +376,13 @@
         }
       });
 
-      /* healing: the residual smear fades out */
-      box.style.setProperty('--heal', (1 - env(p, HEAL[0], HEAL[1])).toFixed(3));
+      /* healing: a class flip starts the timed fade (see .rupture.healing in style.css) */
+      var nowHealing = p >= HEAL_AT;
+      if (nowHealing !== healing) {
+        healing = nowHealing;
+        box.classList.toggle('instant', !animate);   /* page opened past the rupture: no replay */
+        box.classList.toggle('healing', healing);
+      }
     }
 
     return { measure: measure, update: update };
