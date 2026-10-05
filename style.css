@@ -198,6 +198,35 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
 }
 .highlight .figure-narrow { max-width: 480px; }
 
+/* Fault-slip effect (see script in index.html) */
+.fault {
+  position: relative;
+  --slip-x: 0px;
+  --slip-y: 0px;
+}
+.fault-clone {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+.fault.slipped .fault-content,
+.fault.slipped .fault-clone {
+  transition: transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) 0.15s;
+}
+.fault.slipped .fault-content {
+  clip-path: polygon(0 0, 100% 0, 0 100%);
+  transform: translate(var(--slip-x), calc(var(--slip-y) * -1));
+}
+.fault.slipped .fault-clone {
+  visibility: visible;
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  transform: translate(calc(var(--slip-x) * -1), var(--slip-y));
+}
+@media (prefers-reduced-motion: reduce) {
+  .fault.slipped .fault-content,
+  .fault.slipped .fault-clone { transition: none; }
+}
+
 /* Media coverage */
 .media-intro { margin: 0 0 1rem; color: var(--muted); }
 .media { list-style: none; margin: 0; padding: 0; }

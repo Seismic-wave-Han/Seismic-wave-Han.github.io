@@ -172,19 +172,23 @@
     <h2>Research Highlights</h2>
 
     <div class="highlight">
-      <h3>Focal mechanisms of small earthquakes from 360° S-wave polarization</h3>
-      <p>
-        We showed that measuring the full 360° S-wave polarization at near-source stations
-        recovers the double-couple radiation pattern, so that reliable focal mechanisms can be
-        obtained from as few as two to three stations. Applied to a dense seismic array in Korea,
-        the method determines focal mechanisms for events from M 2.9 down to M −0.4, and it is
-        validated with the 2023 Parkfield and 2011 Mineral, Virginia, earthquake sequences.
-      </p>
-      <p class="links">
-        <a href="https://doi.org/10.1093/gji/ggaf530">Paper (GJI, 2026)</a>
-        <span aria-hidden="true">·</span>
-        <a href="https://www.seismosoc.org/news/2025-annual-meeting-student-presentation-awards-announced/">SSA Student Presentation Award</a>
-      </p>
+      <div class="fault">
+        <div class="fault-content">
+          <h3>Focal mechanisms of small earthquakes from 360° S-wave polarization</h3>
+          <p>
+            We showed that measuring the <strong>full 360° S-wave polarization</strong> at near-source stations
+            recovers the double-couple radiation pattern, so that reliable focal mechanisms can be
+            <strong>obtained from as few as two to three stations</strong>. Applied to a dense seismic array in Korea,
+            the method determines focal mechanisms for events from M 2.9 down to M −0.4, and it is
+            validated with the 2023 Parkfield and 2011 Mineral, Virginia, earthquake sequences.
+          </p>
+          <p class="links">
+            <a href="https://doi.org/10.1093/gji/ggaf530">Paper (GJI, 2026)</a>
+            <span aria-hidden="true">·</span>
+            <a href="https://www.seismosoc.org/news/2025-annual-meeting-student-presentation-awards-announced/">SSA Student Presentation Award</a>
+          </p>
+        </div>
+      </div>
       <img class="figure" src="images/highlight-swave-polarization.png" width="1326" height="446"
            alt="Schematic of measuring S-wave polarization at a station, with L, Q, and T component waveforms and S-wave particle motion">
     </div>
@@ -413,6 +417,48 @@
   } else if (copy) {
     copy.hidden = true;
   }
+})();
+
+/* Fault-slip effect: when a .fault block scrolls into view, its text is cut
+   along the upper-right to lower-left diagonal and the two sides slip past
+   each other along that line by half a line height in total. */
+(function () {
+  var faults = document.querySelectorAll('.fault');
+  if (!faults.length || !('IntersectionObserver' in window)) return;
+
+  Array.prototype.forEach.call(faults, function (fault) {
+    var content = fault.querySelector('.fault-content');
+    if (!content) return;
+
+    var clone = content.cloneNode(true);
+    clone.classList.add('fault-clone');
+    clone.setAttribute('aria-hidden', 'true');
+    Array.prototype.forEach.call(clone.querySelectorAll('a, button'), function (el) {
+      el.tabIndex = -1;
+    });
+    fault.appendChild(clone);
+
+    function measure() {
+      var w = content.offsetWidth;
+      var h = content.offsetHeight;
+      var len = Math.sqrt(w * w + h * h) || 1;
+      var p = content.querySelector('p') || content;
+      var lineHeight = parseFloat(getComputedStyle(p).lineHeight) || 24;
+      var s = lineHeight * 0.25;          /* each side moves a quarter line */
+      fault.style.setProperty('--slip-x', (w / len * s).toFixed(2) + 'px');
+      fault.style.setProperty('--slip-y', (h / len * s).toFixed(2) + 'px');
+    }
+    measure();
+    window.addEventListener('resize', measure);
+
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.intersectionRatio >= 0.5) fault.classList.add('slipped');
+        else if (entry.intersectionRatio === 0) fault.classList.remove('slipped');
+      });
+    }, { threshold: [0, 0.5] });
+    io.observe(fault);
+  });
 })();
 </script>
 
