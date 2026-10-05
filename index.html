@@ -17,8 +17,10 @@
     <feTurbulence type="turbulence" baseFrequency="0.02 0.05" numOctaves="2" seed="11" result="noise"/>
     <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G"/>
   </filter>
-  <!-- Ink smeared sideways: slightly thickened, lightly blurred glyphs with fading copies dragged to both sides -->
-  <filter id="smear-filter" x="-15%" y="-10%" width="130%" height="120%" color-interpolation-filters="sRGB">
+  <!-- Ink smeared sideways, applied per letter: slightly thickened, lightly blurred glyph
+       with fading copies dragged to both sides. The region is in px so the streaks are
+       not clipped to the tiny letter box. -->
+  <filter id="smear-glyph" filterUnits="userSpaceOnUse" x="-40" y="-10" width="140" height="60" color-interpolation-filters="sRGB">
     <feMorphology in="SourceGraphic" operator="dilate" radius="0.5 0.3" result="ink"/>
     <feGaussianBlur in="ink" stdDeviation="1.8 0.3" result="b"/>
     <feOffset in="b" dx="6" dy="0" result="r1"/>

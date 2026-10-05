@@ -24,6 +24,42 @@
     return el;
   }
 
+  /* Keep an unsplit copy of `el` for assistive technology and mark `el` as decorative. */
+  function animatedCopy(el) {
+    var sr = el.cloneNode(true);
+    sr.classList.add('sr-only');
+    el.parentNode.insertBefore(sr, el);
+    el.setAttribute('aria-hidden', 'true');
+    Array.prototype.forEach.call(el.querySelectorAll('a, button'), function (a) { a.tabIndex = -1; });
+  }
+
+  /* Split the text nodes under `root` into word spans (.w) holding letter spans (.c). */
+  function splitText(root, words, letters) {
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function (node) {
+      if (!node.nodeValue.trim()) return;
+      var frag = document.createDocumentFragment();
+      node.nodeValue.split(/(\s+)/).forEach(function (tok) {
+        if (!tok) return;
+        if (/^\s+$/.test(tok)) { frag.appendChild(document.createTextNode(' ')); return; }
+        var w = document.createElement('span');
+        w.className = 'w';
+        Array.from(tok).forEach(function (ch) {
+          var c = document.createElement('span');
+          c.className = 'c';
+          c.textContent = ch;
+          w.appendChild(c);
+          letters.push({ el: c, ch: ch, x: 0, y: 0, hit: false });
+        });
+        words.push({ el: w, x: 0, hit: false });
+        frag.appendChild(w);
+      });
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
   /* ------------------------------------------------------------------ */
   /* 1. Email popover                                                    */
   /* ------------------------------------------------------------------ */
@@ -233,80 +269,99 @@
 
   /* ------------------------------------------------------------------ */
   /* 4. Cascading rupture (Jeju multi-stage rupture highlight)           */
-  /*    Two smeared copies of the text are revealed through ring-shaped  */
-  /*    masks that expand from the hypocentres, so the ink smear travels */
-  /*    with the rupture front as a slip pulse. Behind the front only a  */
-  /*    faint residual remains, which heals at the end.                  */
-  /*      2-8 %,  10-17 %  two weak nucleation phases (small flickers)    */
-  /*      19-50 %          subevent 1: slow, bilateral, from the right    */
-  /*      50-57 %          pause between the subevents                    */
-  /*      57-84 %          subevent 2: faster, westward only, on the left */
-  /*      88-100 %         healing: residual smear fades out              */
+  /*    Every letter carries a hidden copy of itself rendered through    */
+  /*    the ink-smear filter. When a circular rupture front reaches a    */
+  /*    letter, that copy flashes to full strength and settles at half   */
+  /*    strength, so the smear travels letter by letter with the front.  */
+  /*      4 %, 11 %   two weak nucleation phases: a flicker near the      */
+  /*                  hypocentre that fades again                        */
+  /*      16-46 %     subevent 1: slow, bilateral, from the right         */
+  /*      46-52 %     pause                                               */
+  /*      52-88 %     subevent 2: faster, from the western end of S1,     */
+  /*                  spreading into everything S1 did not break         */
+  /*      88-100 %    healing: the residual smear fades out               */
   /* ------------------------------------------------------------------ */
   registerStage('rupture', function (stage) {
     var box = stage.el.querySelector('.rupture');
     var content = box && box.querySelector('.rupture-content');
     if (!box || !content) return null;
 
-    var L1 = cloneLayer(content, 'rupture-layer rupture-s1');
-    var L2 = cloneLayer(content, 'rupture-layer rupture-s2');
-    var EMPTY = 'radial-gradient(circle at 0 0, transparent 0px, transparent 1px)';
-    var g = { W: 0, H: 0 };
+    var words = [], letters = [];
+    Array.prototype.slice.call(content.children).forEach(function (el) {
+      animatedCopy(el);
+      splitText(el, words, letters);
+    });
+    letters.forEach(function (L, i) {
+      var wrap = document.createElement('span');
+      wrap.className = 'sw';
+      wrap.setAttribute('aria-hidden', 'true');
+      var ghost = document.createElement('span');
+      ghost.className = 's';
+      ghost.textContent = L.ch;
+      wrap.appendChild(ghost);
+      L.el.appendChild(wrap);
+      L.el.style.setProperty('--sdur', (0.9 + 0.5 * rnd(i, 7)).toFixed(2) + 's');
+    });
 
-    /* hypocentres and rupture extents, as fractions of the text block */
-    var S1 = { cx: 0.70, cy: 0.50, R: 0.31, w: 0.10, start: 0.19, end: 0.50, off: 0.56 };
-    var S2 = { cx: 0.40, cy: 0.52, R: 0.45, w: 0.13, start: 0.57, end: 0.84, off: 0.90 };
-    var RESIDUAL = 0.15;               /* faint smear left behind the slip pulse until healing */
+    var NUC = [[0.04, 22], [0.11, 32]];                 /* [progress, radius in px] of the nucleation flickers */
+    var S1 = { cx: 0.70, cy: 0.50, R: 0.33, start: 0.16, end: 0.46 };
+    var S2 = { cx: 0.37, cy: 0.55, R: 1, start: 0.52, end: 0.88 };   /* R is set to reach the farthest corner */
+    var HEAL = [0.88, 1.0];
+    var g = { W: 1, H: 1 };
+    var nucFired = NUC.map(function () { return false; });
 
-    function setMask(el, value) {
-      el.style.webkitMaskImage = value;
-      el.style.maskImage = value;
-    }
     function measure() {
-      g.W = content.offsetWidth;
-      g.H = content.offsetHeight;
-      /* subevent 2 propagates westward only: hide its layer east of the nucleation point */
-      var cut = g.W - (S2.cx + 0.03) * g.W;
-      L2.style.clipPath = 'inset(0 ' + cut.toFixed(1) + 'px 0 0)';
-      [L1, L2].forEach(function (L) {
-        L.style.webkitMaskComposite = 'source-over';
-        L.style.maskComposite = 'add';
+      var r = content.getBoundingClientRect();
+      g.W = content.offsetWidth || 1;
+      g.H = content.offsetHeight || 1;
+      var c1x = S1.cx * g.W, c1y = S1.cy * g.H, c2x = S2.cx * g.W, c2y = S2.cy * g.H;
+      S2.R = 0;
+      [[0, 0], [g.W, 0], [0, g.H], [g.W, g.H]].forEach(function (P) {
+        S2.R = Math.max(S2.R, Math.sqrt((P[0] - c2x) * (P[0] - c2x) + (P[1] - c2y) * (P[1] - c2y)));
+      });
+      letters.forEach(function (L) {
+        var b = L.el.getBoundingClientRect();
+        L.x = b.left - r.left + b.width / 2;
+        L.y = b.top - r.top + b.height / 2;
+        L.d1 = Math.sqrt((L.x - c1x) * (L.x - c1x) + (L.y - c1y) * (L.y - c1y));
+        L.d2 = Math.sqrt((L.x - c2x) * (L.x - c2x) + (L.y - c2y) * (L.y - c2y));
       });
     }
-    function px(x) { return Math.max(0, x).toFixed(1) + 'px'; }
-    function disc(cx, cy, r, a) {
-      if (r <= 0 || a <= 0.001) return EMPTY;
-      a = a.toFixed(3);
-      return 'radial-gradient(circle at ' + px(cx) + ' ' + px(cy) + ', rgba(0,0,0,' + a + ') 0px, rgba(0,0,0,' + a + ') ' + px(r) + ', transparent ' + px(r + 1) + ')';
-    }
-    /* Slip pulse: residual inside, rising to a peak just behind the front, then the unbroken region */
-    function pulse(cx, cy, r, w, peak, res) {
-      if (r <= 0 || peak <= 0.001) return EMPTY;
-      var mid = res + (peak - res) * 0.4;
-      return 'radial-gradient(circle at ' + px(cx) + ' ' + px(cy) + ', '
-        + 'rgba(0,0,0,' + res.toFixed(3) + ') 0px, '
-        + 'rgba(0,0,0,' + res.toFixed(3) + ') ' + px(r - w) + ', '
-        + 'rgba(0,0,0,' + mid.toFixed(3) + ') ' + px(r - 0.5 * w) + ', '
-        + 'rgba(0,0,0,' + peak.toFixed(3) + ') ' + px(r - 0.12 * w) + ', '
-        + 'rgba(0,0,0,' + peak.toFixed(3) + ') ' + px(r) + ', '
-        + 'transparent ' + px(r + 0.6) + ')';
-    }
-    function subevent(S, p, healing) {
-      var t = env(p, S.start, S.end);
-      var active = p >= S.start ? 1 : 0;
-      var peak = (1 - env(p, S.end, S.off)) * active;
-      var res = RESIDUAL * healing * active;
-      return pulse(S.cx * g.W, S.cy * g.H, S.R * g.W * t, S.w * g.W, Math.max(peak, res), res);
-    }
 
-    function update(p) {
-      var healing = 1 - env(p, 0.88, 1.0);
-      var t = env(p, 0.02, 0.08);
-      var n1 = disc(S1.cx * g.W, S1.cy * g.H, 20 * t, 0.45 * Math.sin(Math.PI * t));
-      t = env(p, 0.10, 0.17);
-      var n2 = disc(S1.cx * g.W, S1.cy * g.H, 30 * t, 0.55 * Math.sin(Math.PI * t));
-      setMask(L1, [n1, n2, subevent(S1, p, healing)].join(', '));
-      setMask(L2, subevent(S2, p, healing));
+    function update(p, lastP) {
+      var forward = p > lastP;
+      var animate = lastP >= 0 && !reduceMotion;
+
+      /* nucleation flickers */
+      NUC.forEach(function (n, i) {
+        if (!nucFired[i] && p >= n[0] && lastP >= 0 && lastP < n[0]) {
+          nucFired[i] = true;
+          if (!reduceMotion) letters.forEach(function (L) {
+            if (L.d1 <= n[1]) { L.el.classList.remove('nuc'); void L.el.offsetWidth; L.el.classList.add('nuc'); }
+          });
+        } else if (nucFired[i] && p < n[0] - 0.03) {
+          nucFired[i] = false;
+          letters.forEach(function (L) { L.el.classList.remove('nuc'); });
+        }
+      });
+
+      /* rupture fronts */
+      var r1 = p >= S1.start ? S1.R * g.W * env(p, S1.start, S1.end) : -1;
+      var r2 = p >= S2.start ? S2.R * env(p, S2.start, S2.end) : -1;
+      letters.forEach(function (L) {
+        var inside = L.d1 <= r1 || L.d2 <= r2;
+        if (!L.hit && inside) {
+          L.hit = true;
+          L.el.classList.add('hit');
+          L.el.classList.toggle('still', !(animate && forward));   /* no burst when the page opens mid-stage */
+        } else if (L.hit && !inside && !forward) {
+          L.hit = false;
+          L.el.classList.remove('hit', 'still');
+        }
+      });
+
+      /* healing: the residual smear fades out */
+      box.style.setProperty('--heal', (1 - env(p, HEAL[0], HEAL[1])).toFixed(3));
     }
 
     return { measure: measure, update: update };
@@ -331,40 +386,10 @@
     var P_S_ARRIVAL = 0.866;   /* scroll fraction at which the S front reaches the right edge */
     var words = [], letters = [];
 
-    function split(root) {
-      var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
-      var nodes = [];
-      while (walker.nextNode()) nodes.push(walker.currentNode);
-      nodes.forEach(function (node) {
-        if (!node.nodeValue.trim()) return;
-        var frag = document.createDocumentFragment();
-        node.nodeValue.split(/(\s+)/).forEach(function (tok) {
-          if (!tok) return;
-          if (/^\s+$/.test(tok)) { frag.appendChild(document.createTextNode(' ')); return; }
-          var w = document.createElement('span');
-          w.className = 'w';
-          Array.from(tok).forEach(function (ch) {
-            var c = document.createElement('span');
-            c.className = 'c';
-            c.textContent = ch;
-            w.appendChild(c);
-            letters.push({ el: c, x: 0, hit: false });
-          });
-          words.push({ el: w, x: 0, hit: false });
-          frag.appendChild(w);
-        });
-        node.parentNode.replaceChild(frag, node);
-      });
-    }
-
-    /* keep an unsplit copy for assistive technology, animate the split one */
     Array.prototype.slice.call(content.children).forEach(function (el) {
       if (el.tagName !== 'H3' && !(el.tagName === 'P' && !el.classList.contains('links'))) return;
-      var sr = el.cloneNode(true);
-      sr.classList.add('sr-only');
-      content.insertBefore(sr, el);
-      el.setAttribute('aria-hidden', 'true');
-      split(el);
+      animatedCopy(el);
+      splitText(el, words, letters);
     });
 
     var W = 1;
