@@ -93,13 +93,70 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
   align-items: center;
   gap: 1rem;
 }
-.contact a {
+.contact > a,
+.email-btn {
   display: inline-flex;
   color: var(--muted);
   transition: color 0.15s ease;
 }
-.contact a:hover { color: var(--accent); text-decoration: none; }
+.contact > a:hover,
+.email-btn:hover,
+.email-btn[aria-expanded="true"] { color: var(--accent); text-decoration: none; }
 .contact svg { width: 22px; height: 22px; fill: currentColor; }
+
+/* Email popover */
+.email-wrap { position: relative; display: inline-flex; }
+.email-btn {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.email-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.email-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.7rem;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+.email-popover[hidden] { display: none; }
+.email-popover::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 6px;
+  width: 10px;
+  height: 10px;
+  background: var(--bg);
+  border-left: 1px solid var(--rule);
+  border-top: 1px solid var(--rule);
+  transform: rotate(45deg);
+}
+.copy-btn {
+  margin: 0;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: none;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+.copy-btn:hover { color: var(--accent); border-color: var(--accent); }
 .interests { margin: 0; padding-left: 1.2rem; }
 .methods { margin: 0; color: var(--muted); }
 
