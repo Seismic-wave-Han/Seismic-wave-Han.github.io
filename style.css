@@ -87,8 +87,19 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
   border-radius: 6px;
 }
 .role { margin: 0; color: var(--muted); font-size: 1.1rem; }
-.contact { margin: 0.4rem 0 1.75rem; }
-.contact span { color: var(--muted); margin: 0 0.4rem; }
+.contact {
+  margin: 0.6rem 0 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.contact a {
+  display: inline-flex;
+  color: var(--muted);
+  transition: color 0.15s ease;
+}
+.contact a:hover { color: var(--accent); text-decoration: none; }
+.contact svg { width: 22px; height: 22px; fill: currentColor; }
 .interests { margin: 0; padding-left: 1.2rem; }
 .methods { margin: 0; color: var(--muted); }
 
@@ -147,6 +158,23 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
 .entry-date { color: var(--muted); white-space: nowrap; }
 .entry-org { color: var(--muted); }
 .entry ul { margin: 0.25rem 0 0; padding-left: 1.2rem; }
+
+/* Experience groups: academic positions vs. field deployments */
+.group + .group {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed var(--rule);
+}
+.group-title {
+  margin: 0 0 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.deployments .entry { margin-bottom: 0.7rem; }
+.deployments .entry-title { font-weight: 500; }
 
 /* Awards */
 .awards { list-style: none; margin: 0; padding: 0; }
