@@ -199,32 +199,58 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
 .highlight .figure-narrow { max-width: 480px; }
 
 /* Fault-slip effect (see script in index.html) */
-.fault {
-  position: relative;
-  --slip-x: 0px;
-  --slip-y: 0px;
+.fault-stage { margin-bottom: 1.9rem; }
+.fault-pin {
+  position: sticky;
+  top: 4.5rem;
+  margin-bottom: 0;
+  --shake: 1;
 }
-.fault-clone {
+.fault-spacer { height: 16em; }         /* 10 lines of scroll drive the effect */
+
+.fault { position: relative; }
+.fault-content {
+  will-change: transform;
+  transition: transform 0.12s linear;
+}
+.fault-layer {
   position: absolute;
   inset: 0;
-  visibility: hidden;
 }
-.fault.slipped .fault-content,
-.fault.slipped .fault-clone {
-  transition: transform 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) 0.15s;
+.fault-g {
+  z-index: 1;
+  pointer-events: none;
+  filter: url(#gouge-filter);
 }
-.fault.slipped .fault-content {
-  clip-path: polygon(0 0, 100% 0, 0 100%);
-  transform: translate(var(--slip-x), calc(var(--slip-y) * -1));
+.fault.ruptured .fault-content,
+.fault.ruptured .fault-layer {
+  transition: transform 0.32s cubic-bezier(0.25, 1.6, 0.45, 1);
 }
-.fault.slipped .fault-clone {
-  visibility: visible;
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  transform: translate(calc(var(--slip-x) * -1), var(--slip-y));
+
+/* Ground shaking: a small P-wave wiggle, a larger S-wave burst, then a decaying coda */
+.fault-pin.shaking { animation: quake 1.1s linear both; }
+@keyframes quake {
+  0%   { transform: translate(0, 0); }
+  5%   { transform: translate(0, calc(-1.2px * var(--shake))); }
+  9%   { transform: translate(0, calc(1.4px * var(--shake))); }
+  13%  { transform: translate(0, calc(-1px * var(--shake))); }
+  17%  { transform: translate(0, calc(0.8px * var(--shake))); }
+  22%  { transform: translate(calc(-9px * var(--shake)), calc(2.5px * var(--shake))); }
+  28%  { transform: translate(calc(8.5px * var(--shake)), calc(-2px * var(--shake))); }
+  34%  { transform: translate(calc(-6.5px * var(--shake)), calc(1.5px * var(--shake))); }
+  40%  { transform: translate(calc(5px * var(--shake)), calc(-1px * var(--shake))); }
+  47%  { transform: translate(calc(-3.5px * var(--shake)), 0); }
+  55%  { transform: translate(calc(2.5px * var(--shake)), 0); }
+  64%  { transform: translate(calc(-1.6px * var(--shake)), 0); }
+  74%  { transform: translate(calc(1px * var(--shake)), 0); }
+  86%  { transform: translate(calc(-0.5px * var(--shake)), 0); }
+  100% { transform: translate(0, 0); }
 }
+
 @media (prefers-reduced-motion: reduce) {
-  .fault.slipped .fault-content,
-  .fault.slipped .fault-clone { transition: none; }
+  .fault-pin.shaking { animation: none; }
+  .fault-content, .fault-layer,
+  .fault.ruptured .fault-content, .fault.ruptured .fault-layer { transition: none; }
 }
 
 /* Media coverage */
