@@ -17,6 +17,29 @@
     <feTurbulence type="turbulence" baseFrequency="0.02 0.05" numOctaves="2" seed="11" result="noise"/>
     <feDisplacementMap in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G"/>
   </filter>
+  <!-- Ink smeared sideways: slightly thickened, lightly blurred glyphs with fading copies dragged to both sides -->
+  <filter id="smear-filter" x="-15%" y="-10%" width="130%" height="120%" color-interpolation-filters="sRGB">
+    <feMorphology in="SourceGraphic" operator="dilate" radius="0.5 0.3" result="ink"/>
+    <feGaussianBlur in="ink" stdDeviation="1.8 0.3" result="b"/>
+    <feOffset in="b" dx="6" dy="0" result="r1"/>
+    <feComponentTransfer in="r1" result="r1a"><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+    <feOffset in="b" dx="-6" dy="0" result="l1"/>
+    <feComponentTransfer in="l1" result="l1a"><feFuncA type="linear" slope="0.55"/></feComponentTransfer>
+    <feOffset in="b" dx="13" dy="0" result="r2"/>
+    <feComponentTransfer in="r2" result="r2a"><feFuncA type="linear" slope="0.25"/></feComponentTransfer>
+    <feOffset in="b" dx="-13" dy="0" result="l2"/>
+    <feComponentTransfer in="l2" result="l2a"><feFuncA type="linear" slope="0.25"/></feComponentTransfer>
+    <feOffset in="b" dx="20" dy="0" result="r3"/>
+    <feComponentTransfer in="r3" result="r3a"><feFuncA type="linear" slope="0.12"/></feComponentTransfer>
+    <feOffset in="b" dx="-20" dy="0" result="l3"/>
+    <feComponentTransfer in="l3" result="l3a"><feFuncA type="linear" slope="0.12"/></feComponentTransfer>
+    <feMerge>
+      <feMergeNode in="l3a"/><feMergeNode in="r3a"/>
+      <feMergeNode in="l2a"/><feMergeNode in="r2a"/>
+      <feMergeNode in="l1a"/><feMergeNode in="r1a"/>
+      <feMergeNode in="b"/>
+    </feMerge>
+  </filter>
 </svg>
 
 <nav class="site-nav">
@@ -178,8 +201,8 @@
   <section id="research">
     <h2>Research Highlights</h2>
 
-    <div class="fault-stage">
-    <div class="highlight fault-pin">
+    <div class="stage" data-effect="fault">
+    <div class="highlight stage-pin">
       <div class="fault">
         <div class="fault-content">
           <h3>Focal mechanisms of small earthquakes from 360° S-wave polarization</h3>
@@ -200,42 +223,56 @@
       <img class="figure" src="images/highlight-swave-polarization.png" width="1326" height="446"
            alt="Schematic of measuring S-wave polarization at a station, with L, Q, and T component waveforms and S-wave particle motion">
     </div>
-    <div class="fault-spacer" aria-hidden="true"></div>
+    <div class="stage-spacer" aria-hidden="true"></div>
     </div>
 
-    <div class="highlight">
-      <h3>Multi-stage rupture of the 2021 M<sub>w</sub> 4.9 offshore Jeju Island earthquake</h3>
-      <p>
-        Using local P and S waves and regional Lg waves, we resolved the complex rupture of this
-        moderate earthquake on the southern Korea–East China Sea continental shelf. Relative source time
-        functions show that the first subevent started with two weak nucleation phases and
-        propagated slowly and bilaterally, and that a second subevent then ruptured westward.
-        This cascading rupture of successive fault patches shows how a moderate-sized earthquake
-        can be generated in an intraplate setting.
-      </p>
-      <p class="links">
-        <a href="https://doi.org/10.1029/2023GL106059">Paper (GRL, 2024)</a>
-      </p>
+    <div class="stage" data-effect="rupture">
+    <div class="highlight highlight-side stage-pin">
+      <div class="rupture">
+        <div class="rupture-content">
+          <h3>Multi-stage rupture of the 2021 M<sub>w</sub> 4.9 offshore Jeju Island earthquake</h3>
+          <p>
+            Using local P and S waves and regional Lg waves, we resolved the complex rupture of this
+            moderate earthquake on the southern Korea–East China Sea continental shelf. Relative source time
+            functions show that the first subevent started with two weak nucleation phases and
+            propagated slowly and bilaterally, and that a second subevent then ruptured westward.
+            This cascading rupture of successive fault patches shows how a moderate-sized earthquake
+            can be generated in an intraplate setting.
+          </p>
+          <p class="links">
+            <a href="https://doi.org/10.1029/2023GL106059">Paper (GRL, 2024)</a>
+          </p>
+        </div>
+      </div>
       <img class="figure figure-narrow" src="images/highlight-jeju-rupture.png" width="1126" height="1219"
            alt="Fault-slip inversion of subevents S1 and S2 with rupture velocities, moment rate function with two peaks, and subevent locations along strike and dip">
     </div>
+    <div class="stage-spacer" aria-hidden="true"></div>
+    </div>
 
-    <div class="highlight">
-      <h3>Rupture model of the 2024 M<sub>w</sub> 4.8 Tewksbury, New Jersey, earthquake</h3>
-      <p>
-        Millions of people around New York City felt this earthquake, but the epicentral area
-        experienced no known significant damage. Fault slip models from regional Lg-wave relative
-        source time functions show the rupture propagating toward the east-northeast and down-dip
-        on an east-dipping fault, which may account for the lack of strong shaking near the
-        epicenter.
-      </p>
-      <p class="links">
-        <a href="https://doi.org/10.1785/0320240020">Paper (The Seismic Record, 2024)</a>
-        <span aria-hidden="true">·</span>
-        <a href="#media">Media coverage</a>
-      </p>
+    <div class="stage" data-effect="wave">
+    <div class="highlight stage-pin">
+      <div class="wave">
+        <div class="wave-content">
+          <h3>Rupture model of the 2024 M<sub>w</sub> 4.8 Tewksbury, New Jersey, earthquake</h3>
+          <p>
+            Millions of people around New York City felt this earthquake, but the epicentral area
+            experienced no known significant damage. Fault slip models from regional Lg-wave relative
+            source time functions show the rupture propagating toward the east-northeast and down-dip
+            on an east-dipping fault, which may account for the lack of strong shaking near the
+            epicenter.
+          </p>
+          <p class="links">
+            <a href="https://doi.org/10.1785/0320240020">Paper (The Seismic Record, 2024)</a>
+            <span aria-hidden="true">·</span>
+            <a href="#media">Media coverage</a>
+          </p>
+        </div>
+      </div>
       <img class="figure" src="images/highlight-tewksbury-slip.png" width="1125" height="405"
            alt="Slip distribution on the fault plane, observed and synthetic Lg-wave source time functions by azimuth, and a 3D sketch of down-dip rupture">
+    </div>
+    <div class="stage-spacer" aria-hidden="true"></div>
     </div>
   </section>
 
@@ -389,211 +426,7 @@
   <p>© 2026 Sangwoo Han · Last updated October 2026</p>
 </footer>
 
-<script>
-(function () {
-  var btn = document.querySelector('.email-btn');
-  var pop = document.getElementById('email-popover');
-  if (!btn || !pop) return;
-
-  function isOpen() { return pop.classList.contains('open'); }
-  function setOpen(open) {
-    pop.classList.toggle('open', open);
-    btn.setAttribute('aria-expanded', String(open));
-  }
-  btn.addEventListener('click', function (e) {
-    e.stopPropagation();
-    setOpen(!isOpen());
-  });
-  document.addEventListener('click', function (e) {
-    if (isOpen() && !pop.contains(e.target)) setOpen(false);
-  });
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && isOpen()) { setOpen(false); btn.focus(); }
-  });
-
-  var copy = pop.querySelector('.copy-btn');
-  if (copy && navigator.clipboard) {
-    var label = copy.querySelector('.copy-label');
-    var timer = null;
-    copy.addEventListener('click', function () {
-      navigator.clipboard.writeText(copy.dataset.copy).then(function () {
-        copy.classList.add('copied');
-        label.textContent = 'Copied';
-        clearTimeout(timer);
-        timer = setTimeout(function () {
-          copy.classList.remove('copied');
-          label.textContent = 'Copy';
-        }, 1600);
-      });
-    });
-  } else if (copy) {
-    copy.hidden = true;
-  }
-})();
-
-/* Fault-slip effect, scroll-driven.
-   The first research highlight pins at the top of the viewport while the
-   scroll distance of .fault-spacer (10 lines) plays out an earthquake cycle:
-     0 .. 60 %  interseismic loading: the far field creeps a little and the
-                gouge zone between the two blocks shears elastically;
-     60 %       coseismic rupture: sudden slip, the gouge is crushed, and the
-                whole block shakes (P-wave wiggle, S-wave burst, coda decay);
-     60 .. 100 % postseismic: logarithmic afterslip and two smaller aftershocks.
-   Text is split into three clipped copies: block A (upper-left side),
-   block B (lower-right side), and the gouge band G between them. */
-(function () {
-  var stage = document.querySelector('.fault-stage');
-  var pin = stage && stage.querySelector('.fault-pin');
-  var fault = stage && stage.querySelector('.fault');
-  var content = fault && fault.querySelector('.fault-content');
-  var spacer = stage && stage.querySelector('.fault-spacer');
-  var disp = document.querySelector('#gouge-filter feDisplacementMap');
-  if (!stage || !pin || !fault || !content || !spacer) return;
-
-  var DIP = 32 * Math.PI / 180;      /* fault angle from horizontal */
-  var P_RUPTURE = 0.6;               /* scroll fraction at which the mainshock occurs */
-  var PRESLIP = 0.1;                 /* fraction of total slip taken up before the mainshock */
-  var COSEISMIC = 0.88;              /* fraction reached by the mainshock itself */
-  var AFTERSLIP_K = 60;              /* steepness of the logarithmic afterslip */
-  var CRUMPLE_MAX = 2.4;             /* displacement-map scale for the crushed gouge */
-  var SHOCKS = [                     /* mainshock and aftershocks: [progress, amplitude] */
-    [P_RUPTURE, 1], [0.78, 0.45], [0.92, 0.25]
-  ];
-
-  /* Build block B and gouge G as copies of the original (block A). */
-  function makeLayer(cls) {
-    var el = content.cloneNode(true);
-    el.classList.add('fault-layer', cls);
-    el.setAttribute('aria-hidden', 'true');
-    Array.prototype.forEach.call(el.querySelectorAll('a, button'), function (a) { a.tabIndex = -1; });
-    fault.appendChild(el);
-    return el;
-  }
-  var layerB = makeLayer('fault-b');
-  var layerG = makeLayer('fault-g');
-
-  /* Geometry: fault line through the centre of the text block, dipping from
-     upper-right to lower-left. u = unit vector along the fault (up-right),
-     n = unit normal pointing to the lower-right side. */
-  var geo = { W: 0, H: 0, S: 0, w: 0, ux: Math.cos(DIP), uy: -Math.sin(DIP), nx: Math.sin(DIP), ny: Math.cos(DIP) };
-
-  function clipHalfPlane(poly, ax, ay, c) {        /* keep points with ax*x + ay*y <= c */
-    var out = [];
-    for (var i = 0; i < poly.length; i++) {
-      var P = poly[i], Q = poly[(i + 1) % poly.length];
-      var dP = ax * P[0] + ay * P[1] - c, dQ = ax * Q[0] + ay * Q[1] - c;
-      if (dP <= 0) out.push(P);
-      if ((dP < 0 && dQ > 0) || (dP > 0 && dQ < 0)) {
-        var t = dP / (dP - dQ);
-        out.push([P[0] + t * (Q[0] - P[0]), P[1] + t * (Q[1] - P[1])]);
-      }
-    }
-    return out;
-  }
-  function toClipPath(poly) {
-    if (poly.length < 3) return 'polygon(0 0, 0 0, 0 0)';
-    return 'polygon(' + poly.map(function (P) { return P[0].toFixed(1) + 'px ' + P[1].toFixed(1) + 'px'; }).join(', ') + ')';
-  }
-
-  function measure() {
-    var W = content.offsetWidth, H = content.offsetHeight;
-    var para = content.querySelector('p') || content;
-    var cs = getComputedStyle(para);
-    var lineHeight = parseFloat(cs.lineHeight) || 24;
-    var probe = document.createElement('span');
-    probe.style.cssText = 'position:absolute;visibility:hidden;width:2ch;height:0;';
-    para.appendChild(probe);
-    var w = probe.offsetWidth || parseFloat(cs.fontSize) * 1.1;   /* gouge width: two characters */
-    para.removeChild(probe);
-
-    geo.W = W; geo.H = H; geo.w = w;
-    geo.S = (0.5 * lineHeight) / Math.sin(DIP);     /* total slip: half a line of vertical offset */
-
-    var rect = [[0, 0], [W, 0], [W, H], [0, H]];
-    var cx = W / 2, cy = H / 2, nc = geo.nx * cx + geo.ny * cy;   /* n . centre */
-    var A = clipHalfPlane(rect, geo.nx, geo.ny, nc - w / 2);                  /* d <= -w/2 */
-    var B = clipHalfPlane(rect, -geo.nx, -geo.ny, -(nc + w / 2));             /* d >=  w/2 */
-    var G = clipHalfPlane(clipHalfPlane(rect, geo.nx, geo.ny, nc + w / 2), -geo.nx, -geo.ny, -(nc - w / 2));
-    content.style.clipPath = toClipPath(A);
-    layerB.style.clipPath = toClipPath(B);
-    layerG.style.clipPath = toClipPath(G);
-    layerG.style.transformOrigin = cx + 'px ' + cy + 'px';
-  }
-
-  /* Rendering state */
-  var pinTop = 0, lastP = -1, ruptured = false, crumple = 0, crumpleTarget = 0, crumpleRaf = null;
-  var fired = SHOCKS.map(function () { return false; });
-
-  function slipFraction(p) {
-    if (p < P_RUPTURE) return PRESLIP * (p / P_RUPTURE);
-    var t = (p - P_RUPTURE) / (1 - P_RUPTURE);
-    return COSEISMIC + (1 - COSEISMIC) * Math.log(1 + AFTERSLIP_K * t) / Math.log(1 + AFTERSLIP_K);
-  }
-
-  function shake(amplitude) {
-    pin.style.setProperty('--shake', amplitude);
-    pin.classList.remove('shaking');
-    void pin.offsetWidth;                                   /* restart the animation */
-    pin.classList.add('shaking');
-  }
-  pin.addEventListener('animationend', function () { pin.classList.remove('shaking'); });
-
-  function setCrumple(target) {
-    crumpleTarget = target;
-    if (!disp || crumpleRaf) return;
-    var step = function () {
-      crumple += (crumpleTarget - crumple) * 0.25;
-      if (Math.abs(crumpleTarget - crumple) < 0.05) crumple = crumpleTarget;
-      disp.setAttribute('scale', (crumple * CRUMPLE_MAX).toFixed(2));
-      crumpleRaf = crumple === crumpleTarget ? null : requestAnimationFrame(step);
-    };
-    crumpleRaf = requestAnimationFrame(step);
-  }
-
-  function render(p) {
-    var f = slipFraction(p);
-    var half = geo.S * f / 2;
-    var dx = (geo.ux * half).toFixed(2), dy = (geo.uy * half).toFixed(2);
-    content.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
-    layerB.style.transform = 'translate(' + (-dx) + 'px, ' + (-dy) + 'px)';
-    /* Gouge: simple shear in the fault frame that joins block A to block B. */
-    var skew = -Math.atan2(geo.S * f, geo.w);
-    var dip = (DIP * 180 / Math.PI).toFixed(2) + 'deg';
-    layerG.style.transform = 'rotate(-' + dip + ') skewX(' + (skew * 180 / Math.PI).toFixed(2) + 'deg) rotate(' + dip + ')';
-
-    var nowRuptured = p >= P_RUPTURE;
-    if (nowRuptured !== ruptured) {
-      ruptured = nowRuptured;
-      fault.classList.toggle('ruptured', ruptured);
-      setCrumple(ruptured ? 1 : 0);
-    }
-    SHOCKS.forEach(function (sh, i) {
-      if (!fired[i] && p >= sh[0] && lastP >= 0 && lastP < sh[0]) { fired[i] = true; shake(sh[1]); }
-      else if (fired[i] && p < sh[0] - 0.05) fired[i] = false;
-    });
-    lastP = p;
-  }
-
-  function onScroll() {
-    var top = stage.getBoundingClientRect().top;
-    var D = spacer.offsetHeight || 1;
-    var p = Math.min(1, Math.max(0, (pinTop - top) / D));
-    if (p !== lastP) render(p);
-  }
-  function onResize() {
-    pinTop = parseFloat(getComputedStyle(pin).top) || 0;
-    measure();
-    lastP = -1;
-    onScroll();
-  }
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onResize);
-  window.addEventListener('load', onResize);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize);
-  onResize();
-})();
-</script>
+<script src="script.js" defer></script>
 
 </body>
 </html>

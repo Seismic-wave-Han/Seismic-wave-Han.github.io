@@ -198,16 +198,26 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
 }
 .highlight .figure-narrow { max-width: 480px; }
 
-/* Fault-slip effect (see script in index.html) */
-.fault-stage { margin-bottom: 1.9rem; }
-.fault-pin {
+/* Pinned scroll stages for the research highlight effects (see script.js) */
+.stage { margin-bottom: 1.9rem; }
+.stage-pin {
   position: sticky;
   top: 4.5rem;
   margin-bottom: 0;
   --shake: 1;
 }
-.fault-spacer { height: 16em; }         /* 10 lines of scroll drive the effect */
+.stage-spacer { height: 16em; }         /* 10 lines of scroll drive each effect */
 
+/* Jeju highlight: tall figure beside the text so the pinned block fits the viewport */
+.highlight-side {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 1.75rem;
+  align-items: start;
+}
+.highlight-side .figure { margin-top: 0.25rem; }
+
+/* Effect 1: fault slip */
 .fault { position: relative; }
 .fault-content {
   will-change: transform;
@@ -228,7 +238,7 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
 }
 
 /* Ground shaking: a small P-wave wiggle, a larger S-wave burst, then a decaying coda */
-.fault-pin.shaking { animation: quake 1.1s linear both; }
+.stage-pin.shaking { animation: quake 1.1s linear both; }
 @keyframes quake {
   0%   { transform: translate(0, 0); }
   5%   { transform: translate(0, calc(-1.2px * var(--shake))); }
@@ -247,10 +257,59 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
   100% { transform: translate(0, 0); }
 }
 
+/* Effect 2: cascading rupture with ink smear */
+.rupture { position: relative; }
+.rupture-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  filter: url(#smear-filter);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Effect 3: passing seismic waves */
+.wave .w { display: inline-block; white-space: nowrap; }
+.wave .c { display: inline-block; }
+.wave .w.p-hit { animation: p-kick 0.5s ease-out both; }
+.wave .c.s-hit { animation: s-kick var(--dur, 2s) linear both; }
+@keyframes p-kick {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(var(--px, 3px)); }
+  50%  { transform: translateX(calc(var(--px, 3px) * -0.45)); }
+  80%  { transform: translateX(calc(var(--px, 3px) * 0.15)); }
+  100% { transform: translateX(0); }
+}
+@keyframes s-kick {
+  0%   { transform: translate(0, 0) rotate(0deg); animation-timing-function: ease-out; }
+  5%   { transform: translate(var(--kx, 0px), var(--ky, 8px)) rotate(var(--kr, 0deg)); animation-timing-function: ease-in-out; }
+  22%  { transform: translate(calc(var(--kx, 0px) * -0.62), calc(var(--ky, 8px) * -0.62)) rotate(calc(var(--kr, 0deg) * -0.6)); animation-timing-function: ease-in-out; }
+  40%  { transform: translate(calc(var(--kx, 0px) * 0.38), calc(var(--ky, 8px) * 0.38)) rotate(calc(var(--kr, 0deg) * 0.35)); animation-timing-function: ease-in-out; }
+  58%  { transform: translate(calc(var(--kx, 0px) * -0.22), calc(var(--ky, 8px) * -0.22)) rotate(calc(var(--kr, 0deg) * -0.2)); animation-timing-function: ease-in-out; }
+  76%  { transform: translate(calc(var(--kx, 0px) * 0.12), calc(var(--ky, 8px) * 0.12)) rotate(calc(var(--kr, 0deg) * 0.1)); animation-timing-function: ease-in-out; }
+  90%  { transform: translate(calc(var(--kx, 0px) * -0.05), calc(var(--ky, 8px) * -0.05)) rotate(0deg); animation-timing-function: ease-in-out; }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* Visually hidden but available to assistive technology */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .fault-pin.shaking { animation: none; }
+  .stage-pin.shaking { animation: none; }
   .fault-content, .fault-layer,
   .fault.ruptured .fault-content, .fault.ruptured .fault-layer { transition: none; }
+  .rupture-layer { display: none; }
+  .wave .w.p-hit, .wave .c.s-hit { animation: none; }
 }
 
 /* Media coverage */
@@ -340,6 +399,8 @@ footer p { margin: 0; }
   .items { padding-left: 1.5rem; }
   .intro-head { grid-template-columns: 1fr; gap: 1.25rem; }
   .portrait { order: -1; width: 150px; }
+  .highlight-side { grid-template-columns: 1fr; gap: 0; }
+  .highlight-side .figure { margin-top: 0.9rem; max-width: 260px; }
 }
 
 /* Mid widths: the nav has too many links to keep the name beside it */
