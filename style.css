@@ -60,6 +60,7 @@ main {
   max-width: var(--width);
   margin: 0 auto;
   padding: 3rem 1.25rem 2rem;
+  overflow-x: clip;   /* the sheared gouge layer of the fault effect must not add sideways scroll (clip keeps sticky working) */
 }
 section { margin-bottom: 3.25rem; }
 
@@ -206,7 +207,7 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
   margin-bottom: 0;
   --shake: 1;
 }
-.stage-spacer { height: 32em; }         /* 20 lines of scroll drive each effect */
+.stage-spacer { height: 64em; }         /* 40 lines of scroll drive each effect; all three finish at 85 % */
 .stage::after {                          /* then 5 lines of hold: the finished scene rests before it scrolls away */
   content: "";
   display: block;
@@ -278,12 +279,13 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
 .rupture .c > .sw > .s {
   display: block;
   white-space: pre;
+  opacity: 0.5;                          /* smear strength: keeps the smeared text readable */
   filter: url(#smear-glyph);
   transition: opacity 0.35s ease;        /* scrolling back: the smear returns quickly */
 }
 .rupture.healing .c > .sw > .s {
   opacity: 0;
-  transition: opacity var(--hdur, 1.8s) ease-in-out var(--hdelay, 0s);
+  transition: opacity var(--hdur, 1s) ease-in-out var(--hdelay, 0s);
 }
 .rupture.instant .c > .sw > .s { transition: none; }   /* page opened past the rupture */
 .rupture .c.nuc > .sw { animation: smear-flicker 0.6s ease-in-out both; }

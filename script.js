@@ -142,12 +142,13 @@
 
   /* ------------------------------------------------------------------ */
   /* 3. Fault slip (S-wave polarization highlight)                       */
-  /*    Ten lines of scroll play out an earthquake cycle on the text:    */
-  /*      0-60 %   interseismic loading: far-field creep, the gouge zone  */
+  /*    The stage's scroll plays out an earthquake cycle on the text:    */
+  /*      0-45 %   interseismic loading: far-field creep, the gouge zone  */
   /*               between the blocks shears elastically                 */
-  /*      60 %     coseismic rupture: sudden slip, crushed gouge, and     */
-  /*               ground shaking (P wiggle, S burst, decaying coda)      */
-  /*      60-100 % postseismic: logarithmic afterslip and aftershocks     */
+  /*      45 %     coseismic rupture: sudden slip, crushed gouge, and     */
+  /*               optional ground shaking (SHAKE, currently off)         */
+  /*      45-85 %  postseismic: logarithmic afterslip and aftershocks     */
+  /*      85-100 % rest                                                   */
   /*    The text is split into block A (upper-left), block B (lower-     */
   /*    right) and the gouge band G between them.                        */
   /* ------------------------------------------------------------------ */
@@ -158,12 +159,14 @@
     if (!fault || !content) return null;
 
     var DIP = 32 * Math.PI / 180;      /* fault angle from horizontal */
-    var P_RUPTURE = 0.6;               /* scroll fraction at which the mainshock occurs */
+    var P_RUPTURE = 0.45;              /* scroll fraction at which the mainshock occurs */
+    var P_END = 0.85;                  /* scroll fraction at which afterslip is complete */
     var PRESLIP = 0.1;                 /* fraction of total slip taken up before the mainshock */
     var COSEISMIC = 0.88;              /* fraction reached by the mainshock itself */
     var AFTERSLIP_K = 60;              /* steepness of the logarithmic afterslip */
     var CRUMPLE_MAX = 2.4;             /* displacement-map scale for the crushed gouge */
-    var SHOCKS = [[P_RUPTURE, 1], [0.78, 0.45], [0.92, 0.25]];   /* [progress, amplitude] */
+    var SHOCKS = [[P_RUPTURE, 1], [0.63, 0.45], [0.77, 0.25]];   /* [progress, amplitude] */
+    var SHAKE = false;                 /* ground shaking of the whole block at each shock (off for now) */
 
     var layerB = cloneLayer(content, 'fault-layer fault-b');
     var layerG = cloneLayer(content, 'fault-layer fault-g');
@@ -201,7 +204,7 @@
       para.removeChild(probe);
 
       geo.W = W; geo.H = H; geo.w = w;
-      geo.S = (0.5 * lineHeight) / Math.sin(DIP);      /* total slip: half a line of vertical offset */
+      geo.S = (1.0 * lineHeight) / Math.sin(DIP);      /* total slip: one line of vertical offset */
 
       var rect = [[0, 0], [W, 0], [W, H], [0, H]];
       var cx = W / 2, cy = H / 2, nc = geo.nx * cx + geo.ny * cy;
@@ -219,11 +222,11 @@
 
     function slipFraction(p) {
       if (p < P_RUPTURE) return PRESLIP * (p / P_RUPTURE);
-      var t = (p - P_RUPTURE) / (1 - P_RUPTURE);
+      var t = env(p, P_RUPTURE, P_END);
       return COSEISMIC + (1 - COSEISMIC) * Math.log(1 + AFTERSLIP_K * t) / Math.log(1 + AFTERSLIP_K);
     }
     function shake(amplitude) {
-      if (reduceMotion) return;
+      if (!SHAKE || reduceMotion) return;
       stage.pin.style.setProperty('--shake', amplitude);
       stage.pin.classList.remove('shaking');
       void stage.pin.offsetWidth;
@@ -275,13 +278,13 @@
   /*    the ink-smear filter. When a circular rupture front reaches a    */
   /*    letter, that copy flashes to full strength and settles at half   */
   /*    strength, so the smear travels letter by letter with the front.  */
-  /*      4 %, 11 %   two weak nucleation phases: a flicker near the      */
+  /*      4 %, 10 %   two weak nucleation phases: a flicker near the      */
   /*                  hypocentre that fades again                        */
-  /*      16-46 %     subevent 1: slow, bilateral, from the right         */
-  /*      46-52 %     pause                                               */
-  /*      52-88 %     subevent 2: faster, from the western end of S1,     */
+  /*      15-44 %     subevent 1: slow, bilateral, from the right         */
+  /*      44-50 %     pause                                               */
+  /*      50-85 %     subevent 2: faster, from the western end of S1,     */
   /*                  spreading into everything S1 did not break         */
-  /*      88 %        healing starts and runs on a fixed clock (~3 s),    */
+  /*      85 %        healing starts and runs on a fixed clock (~2 s),    */
   /*                  first-broken letters first, so it plays out even    */
   /*                  if the reader keeps scrolling                      */
   /* ------------------------------------------------------------------ */
@@ -307,12 +310,12 @@
       L.el.style.setProperty('--sdur', (0.9 + 0.5 * rnd(i, 7)).toFixed(2) + 's');
     });
 
-    var NUC = [[0.04, 22], [0.11, 32]];                 /* [progress, radius in px] of the nucleation flickers */
-    var S1 = { cx: 0.70, cy: 0.50, R: 0.33, start: 0.16, end: 0.46 };
-    var S2 = { cx: 0.37, cy: 0.55, R: 1, start: 0.52, end: 0.88 };   /* R is set to reach the farthest corner */
-    var HEAL_AT = 0.88;        /* progress at which healing starts (end of subevent 2) */
-    var HEAL_SPREAD = 1.5;     /* s between the first- and the last-broken letter starting to heal */
-    var HEAL_FADE = 1.8;       /* s for one letter's smear to fade out */
+    var NUC = [[0.04, 22], [0.10, 32]];                 /* [progress, radius in px] of the nucleation flickers */
+    var S1 = { cx: 0.70, cy: 0.50, R: 0.33, start: 0.15, end: 0.44 };
+    var S2 = { cx: 0.37, cy: 0.55, R: 1, start: 0.50, end: 0.85 };   /* R is set to reach the farthest corner */
+    var HEAL_AT = 0.85;        /* progress at which healing starts (end of subevent 2) */
+    var HEAL_SPREAD = 0.85;    /* s between the first- and the last-broken letter starting to heal */
+    var HEAL_FADE = 1.0;       /* s for one letter's smear to fade out (whole healing: ~2 s) */
     var g = { W: 1, H: 1 };
     var nucFired = NUC.map(function () { return false; });
     var healing = false;
@@ -340,7 +343,7 @@
         var t1 = L.d1 <= r1max ? S1.start + (S1.end - S1.start) * L.d1 / r1max : Infinity;
         var t2 = S2.start + (S2.end - S2.start) * Math.min(1, L.d2 / S2.R);
         var order = (Math.min(t1, t2) - S1.start) / (S2.end - S1.start);
-        L.el.style.setProperty('--hdelay', (HEAL_SPREAD * order + 0.25 * rnd(i, 8)).toFixed(2) + 's');
+        L.el.style.setProperty('--hdelay', (HEAL_SPREAD * order + 0.15 * rnd(i, 8)).toFixed(2) + 's');
       });
     }
 
@@ -404,7 +407,7 @@
     if (!box || !content) return null;
 
     var VP_VS = 1.73;          /* P-wave speed over S-wave speed */
-    var P_S_ARRIVAL = 0.866;   /* scroll fraction at which the S front reaches the right edge */
+    var P_S_ARRIVAL = 0.85;    /* scroll fraction at which the S front reaches the right edge */
     var words = [], letters = [];
 
     Array.prototype.slice.call(content.children).forEach(function (el) {
