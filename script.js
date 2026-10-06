@@ -103,10 +103,15 @@
   /*    a progress value p in [0, 1] and handed to the effect. A short   */
   /*    hold (.stage::after) keeps the finished scene pinned at p = 1    */
   /*    before it scrolls away.                                          */
+  /*    Phones (the CSS small-screen breakpoint) get the plain           */
+  /*    highlights: no pinning and no effects.                           */
   /* ------------------------------------------------------------------ */
   var stages = [];
+  var noEffects = window.matchMedia && window.matchMedia('(max-width: 680px)').matches;
+  if (noEffects) document.documentElement.classList.add('no-fx');   /* stays plain even if rotated wider */
 
   function registerStage(name, build) {
+    if (noEffects) return;
     var el = document.querySelector('.stage[data-effect="' + name + '"]');
     if (!el) return;
     var pin = el.querySelector('.stage-pin');
@@ -120,8 +125,12 @@
   function updateStages() {
     for (var i = 0; i < stages.length; i++) {
       var st = stages[i];
+      var D = st.spacer.offsetHeight;
+      if (!D) {                              /* window narrowed to phone width: reset to plain text */
+        if (st.lastP !== 0) { st.effect.update(0, 1); st.lastP = 0; }
+        continue;
+      }
       var top = st.el.getBoundingClientRect().top;
-      var D = st.spacer.offsetHeight || 1;
       var p = clamp01((st.pinTop - top) / D);
       if (p !== st.lastP) {
         st.effect.update(p, st.lastP);

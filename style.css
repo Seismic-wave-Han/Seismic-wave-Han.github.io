@@ -213,6 +213,9 @@ h3 { font-size: 1.05rem; margin: 1.75rem 0 0.6rem; }
   display: block;
   height: 8em;
 }
+/* Phones: plain highlights, no pinning (script.js adds .no-fx when it skips the effects) */
+.no-fx .stage-pin { position: static; }
+.no-fx .stage-spacer, .no-fx .stage::after { display: none; }
 
 /* Jeju highlight: tall figure beside the text so the pinned block fits the viewport */
 .highlight-side {
@@ -436,6 +439,8 @@ footer p { margin: 0; }
   .intro-head { grid-template-columns: 1fr; gap: 1.25rem; }
   .portrait { order: -1; width: 150px; }
   .highlight-side { grid-template-columns: 1fr; gap: 0; }
+  .stage-pin { position: static; }                         /* same as .no-fx, from the first paint */
+  .stage-spacer, .stage::after { display: none; }
   .highlight-side .figure { margin-top: 0.9rem; max-width: 260px; }
 }
 
